@@ -78,6 +78,7 @@ public:
 class ListIterator {
 	friend class List;
 protected:
+	virtual bool nextItem() = 0;
 	const List* pList;
 	Node* iterator;
 public:
@@ -95,33 +96,29 @@ public:
 	bool first() {
 		iterator = pList->front;
 		return nextItem();
-	};
+	}
 	bool next() {
 		iterator = iterator->next;
 		return nextItem();
-	};
-	virtual bool nextItem() = 0;
+	}
 };
 
 class ListIteratorStep : public ListIterator
 {
 private:
 	int step;
-public:
-	friend class List;
-	ListIteratorStep(const List* aPList, int aStep = 1) : ListIterator(aPList) {
-		if (aStep < 0)
-			throw std::exception("Impossible to create a ListIteratorStep: step can't be <0");
-		step = aStep - 1;
-	}
-
 	bool nextItem() override
 	{
 		for (auto i = 0; iterator != nullptr && i < step; i++)
 			iterator = iterator->next;
 		return iterator != nullptr;
 	}
-
+public:
+	ListIteratorStep(const List* aPList, int aStep = 1) : ListIterator(aPList) {
+		if (aStep < 0)
+			throw std::exception("Impossible to create a ListIteratorStep: step can't be <0");
+		step = aStep - 1;
+	}
 };
 
 class ListIteratorPredicate : public ListIterator
@@ -137,7 +134,6 @@ public:
 	ListIteratorPredicate(const List* aPList, bool(*aFunction)(int)) : ListIterator(aPList), function(aFunction) {}
 };
 
-
 class ListIteratorValue : public ListIterator
 {
 private:
@@ -149,7 +145,6 @@ private:
 	}
 public:
 	ListIteratorValue(const List* aPList, int aValue) : ListIterator(aPList), value(aValue) {}
-
 };
 
 ListIterator* List::createIterator(Iterators its, const int aStep, bool(*aFunc)(int)) const {
